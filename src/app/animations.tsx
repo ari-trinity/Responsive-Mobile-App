@@ -1,157 +1,192 @@
-import { useState } from "react";
-import {
-	ScrollView,
-	StyleSheet,
-	Text,
-	TouchableOpacity,
-	View,
-} from "react-native";
+import { useEffect } from "react";
+import { ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
-	useAnimatedStyle,
-	useSharedValue,
-	withSpring,
-	withTiming,
+  Easing,
+  useAnimatedStyle,
+  useSharedValue,
+  withRepeat,
+  withSequence,
+  withSpring,
+  withTiming,
 } from "react-native-reanimated";
+import { BackLink } from "../components/BackLink";
+import { cardShadow, colors } from "../theme";
 
 export default function AnimationsScreen() {
-  const scale = useSharedValue(1);
-  const offset = useSharedValue(0);
-  const turns = useSharedValue(0);
+  const bounce = useSharedValue(0);
+  const pulse = useSharedValue(0);
+  const slide = useSharedValue(0);
+  const travel = useSharedValue(0);
 
-  const [big, setBig] = useState(false);
-  const [shifted, setShifted] = useState(false);
+  useEffect(() => {
+    bounce.value = withRepeat(
+      withSequence(
+        withSpring(44, { damping: 12, stiffness: 90 }),
+        withSpring(0, { damping: 12, stiffness: 90 }),
+      ),
+      -1,
+      false,
+    );
+    pulse.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 1000, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+    slide.value = withRepeat(
+      withSequence(
+        withTiming(1, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+        withTiming(0, { duration: 1200, easing: Easing.inOut(Easing.ease) }),
+      ),
+      -1,
+      false,
+    );
+  }, [bounce, pulse, slide]);
 
-  const bounceStyle = useAnimatedStyle(() => ({
-    transform: [{ scale: scale.value }],
+  const ballStyle = useAnimatedStyle(() => ({
+    transform: [{ translateY: bounce.value }],
   }));
 
-  const slideStyle = useAnimatedStyle(() => ({
-    transform: [{ translateX: offset.value }],
+  const pulseStyle = useAnimatedStyle(() => ({
+    opacity: 0.6 + pulse.value * 0.4,
+    transform: [{ scale: 0.7 + pulse.value * 0.55 }],
   }));
 
-  const spinStyle = useAnimatedStyle(() => ({
-    transform: [{ rotate: `${turns.value * 360}deg` }],
+  const fillStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: slide.value * travel.value }],
   }));
-
-  const onBounce = () => {
-    const next = !big;
-    setBig(next);
-    scale.value = withSpring(next ? 1.3 : 1);
-  };
-
-  const onSlide = () => {
-    const next = !shifted;
-    setShifted(next);
-    offset.value = withTiming(next ? 48 : 0, { duration: 400 });
-  };
-
-  const onSpin = () => {
-    turns.value = withTiming(turns.value + 1, { duration: 600 });
-  };
 
   return (
-    <ScrollView contentContainerStyle={styles.screen}>
-      <View style={styles.content}>
-        <View style={styles.card}>
-          <Text style={styles.title}>Spring</Text>
-          <Text style={styles.body}>
-            The square grows and settles with a little bounce.
-          </Text>
-          <Animated.View style={[styles.box, bounceStyle]} />
-          <TouchableOpacity
-            style={styles.button}
-            activeOpacity={0.8}
-            onPress={onBounce}
-          >
-            <Text style={styles.buttonText}>{big ? "Shrink" : "Grow"}</Text>
-          </TouchableOpacity>
+    <View style={styles.screen}>
+      <ScrollView style={styles.sheet} contentContainerStyle={styles.content}>
+        <BackLink />
+        <View style={styles.header}>
+          <Text style={styles.heading}>Animations</Text>
+          <Text style={styles.intro}>Real motion, running live below.</Text>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.title}>Timing</Text>
-          <Text style={styles.body}>
-            The square slides over a fixed amount of time.
-          </Text>
-          <Animated.View style={[styles.box, slideStyle]} />
-          <TouchableOpacity
-            style={styles.button}
-            activeOpacity={0.8}
-            onPress={onSlide}
-          >
-            <Text style={styles.buttonText}>
-              {shifted ? "Slide back" : "Slide right"}
-            </Text>
-          </TouchableOpacity>
+        <View style={styles.demo}>
+          <Text style={styles.demoTitle}>Bouncing ball</Text>
+          <Text style={styles.demoText}>A spring that keeps going.</Text>
+          <View style={styles.stage}>
+            <Animated.View style={[styles.ball, ballStyle]} />
+          </View>
         </View>
 
-        <View style={styles.card}>
-          <Text style={styles.title}>Rotation</Text>
-          <Text style={styles.body}>
-            Each press turns the square one full circle.
-          </Text>
-          <Animated.View style={[styles.box, spinStyle]} />
-          <TouchableOpacity
-            style={styles.button}
-            activeOpacity={0.8}
-            onPress={onSpin}
-          >
-            <Text style={styles.buttonText}>Spin</Text>
-          </TouchableOpacity>
+        <View style={styles.demo}>
+          <Text style={styles.demoTitle}>Breathing dot</Text>
+          <Text style={styles.demoText}>Slow pulse, like it's alive.</Text>
+          <View style={[styles.stage, styles.stageCenter]}>
+            <Animated.View style={[styles.dot, pulseStyle]} />
+          </View>
         </View>
-      </View>
-    </ScrollView>
+
+        <View style={styles.demo}>
+          <Text style={styles.demoTitle}>Sliding bar</Text>
+          <Text style={styles.demoText}>Progress that never quite finishes.</Text>
+          <View style={[styles.stage, styles.stageCenter]}>
+            <View
+              style={styles.track}
+              onLayout={(event) => {
+                travel.value = event.nativeEvent.layout.width * 0.6;
+              }}
+            >
+              <Animated.View style={[styles.fill, fillStyle]} />
+            </View>
+          </View>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   screen: {
-    flexGrow: 1,
+    flex: 1,
+    backgroundColor: colors.desk,
     alignItems: "center",
   },
-  content: {
+  sheet: {
+    flex: 1,
     width: "100%",
-    maxWidth: 480,
-    padding: 24,
+    maxWidth: 420,
+    backgroundColor: colors.mintScreen,
   },
-  card: {
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    padding: 20,
-    marginBottom: 16,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+  content: {
+    paddingBottom: 28,
   },
-  title: {
-    fontSize: 20,
-    fontWeight: "700",
-    color: "#111827",
+  header: {
+    paddingHorizontal: 20,
+    paddingTop: 8,
+    paddingBottom: 4,
+  },
+  heading: {
+    fontSize: 22,
+    fontWeight: "800",
+    color: colors.ink,
+  },
+  intro: {
+    fontSize: 13,
+    color: colors.muted,
+    marginTop: 4,
+  },
+  demo: {
+    marginHorizontal: 20,
+    marginTop: 16,
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    padding: 18,
+    ...cardShadow,
+  },
+  demoTitle: {
+    fontSize: 14,
+    fontWeight: "800",
+    color: colors.ink,
     marginBottom: 4,
   },
-  body: {
-    fontSize: 15,
-    color: "#4B5563",
-    marginBottom: 16,
+  demoText: {
+    fontSize: 12,
+    color: colors.muted,
+    marginBottom: 14,
   },
-  box: {
-    width: 56,
-    height: 56,
-    borderRadius: 12,
-    backgroundColor: "#111827",
-    marginBottom: 16,
+  stage: {
+    height: 110,
+    backgroundColor: colors.mint,
+    borderRadius: 14,
+    overflow: "hidden",
   },
-  button: {
-    alignSelf: "flex-start",
-    backgroundColor: "#111827",
-    borderRadius: 12,
-    paddingVertical: 12,
-    paddingHorizontal: 16,
+  stageCenter: {
+    alignItems: "center",
+    justifyContent: "center",
   },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 15,
-    fontWeight: "600",
+  ball: {
+    position: "absolute",
+    left: 20,
+    top: 20,
+    width: 34,
+    height: 34,
+    borderRadius: 17,
+    backgroundColor: colors.green,
+  },
+  dot: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: colors.green,
+  },
+  track: {
+    width: "88%",
+    height: 14,
+    borderRadius: 8,
+    backgroundColor: colors.white,
+    overflow: "hidden",
+  },
+  fill: {
+    height: "100%",
+    width: "40%",
+    borderRadius: 8,
+    backgroundColor: colors.green,
   },
 });

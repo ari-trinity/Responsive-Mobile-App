@@ -1,19 +1,14 @@
 import { Stack } from "expo-router";
+import { colors } from "../theme";
 
 export default function RootLayout() {
   return (
     <Stack
       screenOptions={{
-        headerStyle: { backgroundColor: "#111827" },
-        headerTintColor: "#ffffff",
-        headerTitleStyle: { fontWeight: "600" },
-        contentStyle: { backgroundColor: "#F3F4F6" },
+        headerShown: false,
+        animation: "slide_from_right",
+        contentStyle: { backgroundColor: colors.desk },
       }}
-    >
-      <Stack.Screen name="index" options={{ title: "Home" }} />
-      <Stack.Screen name="details" options={{ title: "Details" }} />
-      <Stack.Screen name="profile" options={{ title: "Profile" }} />
-      <Stack.Screen name="animations" options={{ title: "Animations" }} />
-    </Stack>
+    />
   );
 }

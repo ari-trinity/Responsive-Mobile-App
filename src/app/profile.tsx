@@ -1,90 +1,148 @@
-import { useEffect } from "react";
-import { StyleSheet, Text, TouchableOpacity, View } from "react-native";
+import { Image } from "expo-image";
+import { useEffect, useState } from "react";
+import { Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import Animated, {
-	interpolate,
-	useAnimatedStyle,
-	useSharedValue,
-	withTiming,
+  interpolate,
+  interpolateColor,
+  useAnimatedStyle,
+  useSharedValue,
+  withTiming,
 } from "react-native-reanimated";
+import { BackLink } from "../components/BackLink";
+import { PastelIcon } from "../components/PastelIcon";
+import { cardShadow, colors } from "../theme";
 
 type Stat = {
   label: string;
   value: string;
 };
 
+type ProfileRow = {
+  id: string;
+  title: string;
+  subtitle: string;
+  icon: "clock" | "pin" | "check";
+  toggle?: boolean;
+};
+
 type Profile = {
   name: string;
   role: string;
-  initials: string;
   stats: Stat[];
+  rows: ProfileRow[];
 };
 
 const profile: Profile = {
   name: "Ari Taylor",
-  role: "Mobile app student",
-  initials: "AT",
+  role: "App explorer since 2026",
   stats: [
-    { label: "Screens", value: "4" },
-    { label: "Projects", value: "1" },
-    { label: "Skills", value: "3" },
+    { label: "Screens", value: "3" },
+    { label: "Visits", value: "12" },
+    { label: "Taps", value: "48" },
+  ],
+  rows: [
+    {
+      id: "history",
+      title: "Activity history",
+      subtitle: "See what you've explored",
+      icon: "clock",
+    },
+    {
+      id: "notifications",
+      title: "Notifications",
+      subtitle: "Get gentle nudges",
+      icon: "pin",
+      toggle: true,
+    },
+    {
+      id: "preferences",
+      title: "Preferences",
+      subtitle: "Tune the app to you",
+      icon: "check",
+    },
   ],
 };
 
 export default function ProfileScreen() {
   const progress = useSharedValue(0);
-
-  const playIntro = () => {
-    progress.value = 0;
-    progress.value = withTiming(1, { duration: 800 });
-  };
+  const knob = useSharedValue(1);
+  const [notificationsOn, setNotificationsOn] = useState(true);
 
   useEffect(() => {
-    playIntro();
-  }, []);
+    progress.value = withTiming(1, { duration: 700 });
+  }, [progress]);
 
   const avatarStyle = useAnimatedStyle(() => ({
     opacity: progress.value,
     transform: [{ scale: interpolate(progress.value, [0, 1], [0.7, 1]) }],
   }));
 
-  const fillStyle = useAnimatedStyle(() => ({
-    width: `${interpolate(progress.value, [0, 1], [0, 72])}%`,
+  const knobStyle = useAnimatedStyle(() => ({
+    transform: [{ translateX: interpolate(knob.value, [0, 1], [0, 19]) }],
   }));
+
+  const trackStyle = useAnimatedStyle(() => ({
+    backgroundColor: interpolateColor(
+      knob.value,
+      [0, 1],
+      [colors.lavender, colors.purple],
+    ),
+  }));
+
+  const onToggle = () => {
+    const next = !notificationsOn;
+    setNotificationsOn(next);
+    knob.value = withTiming(next ? 1 : 0, { duration: 200 });
+  };
 
   return (
     <View style={styles.screen}>
-      <View style={styles.content}>
-        <Animated.View style={[styles.avatar, avatarStyle]}>
-          <Text style={styles.initials}>{profile.initials}</Text>
-        </Animated.View>
+      <ScrollView style={styles.sheet} contentContainerStyle={styles.content}>
+        <BackLink />
 
-        <Text style={styles.name}>{profile.name}</Text>
-        <Text style={styles.role}>{profile.role}</Text>
+        <View style={styles.top}>
+          <Animated.View style={[styles.avatar, avatarStyle]}>
+            <Image
+              source={require("../../assets/images/profile-photo.png")}
+              style={styles.photo}
+              contentFit="cover"
+            />
+          </Animated.View>
+          <Text style={styles.name}>{profile.name}</Text>
+          <Text style={styles.role}>{profile.role}</Text>
+        </View>
 
-        <View style={styles.statsRow}>
-          {profile.stats.map((stat) => (
-            <View key={stat.label} style={styles.statCard}>
+        <View style={styles.stats}>
+          {profile.stats.map((stat, index) => (
+            <View
+              key={stat.label}
+              style={[styles.stat, index > 0 && styles.statDivider]}
+            >
               <Text style={styles.statValue}>{stat.value}</Text>
               <Text style={styles.statLabel}>{stat.label}</Text>
             </View>
           ))}
         </View>
 
-        <View style={styles.skillCard}>
-          <Text style={styles.skillTitle}>Profile setup</Text>
-          <View style={styles.track}>
-            <Animated.View style={[styles.fill, fillStyle]} />
-          </View>
+        <View style={styles.rows}>
+          {profile.rows.map((row) => (
+            <View key={row.id} style={styles.row}>
+              <PastelIcon name={row.icon} size={38} />
+              <View style={styles.rowText}>
+                <Text style={styles.rowTitle}>{row.title}</Text>
+                <Text style={styles.rowSubtitle}>{row.subtitle}</Text>
+              </View>
+              {row.toggle ? (
+                <Pressable onPress={onToggle} accessibilityRole="switch">
+                  <Animated.View style={[styles.track, trackStyle]}>
+                    <Animated.View style={[styles.knob, knobStyle]} />
+                  </Animated.View>
+                </Pressable>
+              ) : null}
+            </View>
+          ))}
         </View>
-
-        <TouchableOpacity
-          style={styles.button}
-          activeOpacity={0.8}
-          onPress={playIntro}
-        >
-          <Text style={styles.buttonText}>Play animation again</Text>
-        </TouchableOpacity>
-      </View>
+      </ScrollView>
     </View>
   );
 }
@@ -92,106 +150,126 @@ export default function ProfileScreen() {
 const styles = StyleSheet.create({
   screen: {
     flex: 1,
+    backgroundColor: colors.desk,
     alignItems: "center",
   },
-  content: {
+  sheet: {
+    flex: 1,
     width: "100%",
-    maxWidth: 480,
-    padding: 24,
+    maxWidth: 420,
+    backgroundColor: colors.profile,
+  },
+  content: {
+    paddingBottom: 28,
+  },
+  top: {
     alignItems: "center",
+    paddingHorizontal: 20,
+    paddingTop: 10,
   },
   avatar: {
     width: 96,
     height: 96,
     borderRadius: 48,
-    backgroundColor: "#111827",
+    backgroundColor: colors.lavender,
     alignItems: "center",
     justifyContent: "center",
-    marginBottom: 16,
+    borderWidth: 4,
+    borderColor: colors.white,
+    overflow: "hidden",
+    shadowColor: colors.purple,
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 6,
   },
-  initials: {
-    color: "#ffffff",
-    fontSize: 32,
-    fontWeight: "700",
+  photo: {
+    width: "100%",
+    height: "100%",
   },
   name: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#111827",
+    fontSize: 20,
+    fontWeight: "800",
+    color: colors.ink,
+    marginTop: 10,
   },
   role: {
-    fontSize: 16,
-    color: "#4B5563",
-    marginTop: 4,
-    marginBottom: 24,
+    fontSize: 13,
+    color: colors.muted,
+    marginTop: 2,
   },
-  statsRow: {
+  stats: {
     flexDirection: "row",
-    width: "100%",
-    gap: 12,
+    marginHorizontal: 20,
+    marginTop: 18,
+    backgroundColor: colors.white,
+    borderRadius: 20,
+    overflow: "hidden",
+    ...cardShadow,
   },
-  statCard: {
+  stat: {
     flex: 1,
-    backgroundColor: "#ffffff",
-    borderRadius: 16,
-    paddingVertical: 16,
     alignItems: "center",
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingVertical: 14,
+  },
+  statDivider: {
+    borderLeftWidth: 1,
+    borderLeftColor: colors.line,
   },
   statValue: {
-    fontSize: 22,
-    fontWeight: "700",
-    color: "#111827",
+    fontSize: 18,
+    fontWeight: "800",
+    color: colors.ink,
   },
   statLabel: {
-    fontSize: 13,
-    color: "#4B5563",
-    marginTop: 4,
+    fontSize: 11,
+    color: colors.muted,
+    marginTop: 2,
   },
-  skillCard: {
-    width: "100%",
-    backgroundColor: "#ffffff",
+  rows: {
+    marginHorizontal: 20,
+    marginTop: 18,
+    gap: 10,
+  },
+  row: {
+    backgroundColor: colors.white,
     borderRadius: 16,
-    padding: 20,
-    marginTop: 16,
-    shadowColor: "#000000",
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.12,
-    shadowRadius: 8,
-    elevation: 4,
+    paddingVertical: 14,
+    paddingHorizontal: 16,
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 12,
+    ...cardShadow,
   },
-  skillTitle: {
-    fontSize: 16,
+  rowText: {
+    flex: 1,
+  },
+  rowTitle: {
+    fontSize: 14,
     fontWeight: "700",
-    color: "#111827",
-    marginBottom: 12,
+    color: colors.ink,
+  },
+  rowSubtitle: {
+    fontSize: 12,
+    color: colors.muted,
+    marginTop: 2,
   },
   track: {
-    height: 12,
-    width: "100%",
-    backgroundColor: "#E5E7EB",
-    borderRadius: 6,
-    overflow: "hidden",
+    width: 46,
+    height: 27,
+    borderRadius: 14,
+    justifyContent: "center",
+    paddingHorizontal: 3,
   },
-  fill: {
-    height: "100%",
-    backgroundColor: "#111827",
-    borderRadius: 6,
-  },
-  button: {
-    marginTop: 20,
-    backgroundColor: "#111827",
-    borderRadius: 12,
-    paddingVertical: 14,
-    paddingHorizontal: 20,
-  },
-  buttonText: {
-    color: "#ffffff",
-    fontSize: 16,
-    fontWeight: "600",
+  knob: {
+    width: 21,
+    height: 21,
+    borderRadius: 11,
+    backgroundColor: colors.white,
+    shadowColor: "#000000",
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.15,
+    shadowRadius: 3,
+    elevation: 2,
   },
 });
