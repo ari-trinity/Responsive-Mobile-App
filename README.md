@@ -1,56 +1,50 @@
-# Welcome to your Expo app 👋
+# Responsive Mobile App
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+Four screens, made with Expo and React Native.
 
-## Get started
+Home is the first page. Three cards open the other screens. Details is a longer page, and the title fades a little as you scroll. Profile has a photo, a few stats, and a notifications switch. Animations plays a bouncing ball, a pulsing dot, and a sliding bar.
 
-1. Install dependencies
+The screen files are in `src/app`. One file is one page.
 
-   ```bash
-   npm install
-   ```
+## How to run it
 
-2. Start the app
+You need Node.js 18 or newer. In a terminal, `node -v` will tell you what you have.
 
-   ```bash
-   npx expo start
-   ```
-
-In the output, you'll find options to open the app in a
-
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
-
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
-
-## Get a fresh project
-
-When you're ready, run:
+From this folder:
 
 ```bash
-npm run reset-project
+npm install
+npx expo start
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+When the menu shows up, press `w` to open the app in a browser. Leave that terminal running. If you close it, the app stops.
 
-### Other setup steps
+To open it on a phone, install Expo Go and scan the QR code in the terminal. The phone and the computer have to be on the same Wi-Fi.
 
-- To set up ESLint for linting, run `npx expo lint`, or follow our guide on ["Using ESLint and Prettier"](https://docs.expo.dev/guides/using-eslint/)
-- If you'd like to set up unit testing, follow our guide on ["Unit Testing with Jest"](https://docs.expo.dev/develop/unit-testing/)
-- Learn more about the TypeScript setup in this template in our guide on ["Using TypeScript"](https://docs.expo.dev/guides/typescript/)
+The iPhone simulator only runs on a Mac. On Windows, use the browser or an Android emulator. `npm run web` opens the browser version without the menu.
 
-## Learn more
+## Screenshots
 
-To learn more about developing your project with Expo, look at the following resources:
+Home.
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+![Home screen](screenshots/home.png)
 
-## Join the community
+Details, at the top of the page.
 
-Join our community of developers creating universal apps.
+![Details screen](screenshots/details.png)
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Details after scrolling. The poster sits under Even more.
+
+![Details screen scrolled](screenshots/details-scrolled.png)
+
+Profile, with the notifications switch on.
+
+![Profile screen](screenshots/profile.png)
+
+The same switch after it is turned off.
+
+![Profile notifications switched off](screenshots/profile-toggle.png)
+
+Animations. The bar is partway across, and the ball and dot are in the middle of their loops.
+
+![Animations screen](screenshots/animations.png)
